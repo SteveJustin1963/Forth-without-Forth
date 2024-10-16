@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_STACK 1024
+#define MAX_INPUT 1024
+
+typedef struct {
+    double data[MAX_STACK];
+    int top;
+} Stack;
+
+Stack stack = {.top = -1};
+
+void push(double num) {
+    if (stack.top < MAX_STACK - 1) {
+        stack.data[++stack.top] = num;
+    } else {
+        printf("Stack overflow\n");
+    }
+}
+
+double pop() {
+    if (stack.top >= 0) {
+        return stack.data[stack.top--];
+    } else {
+        printf("Stack underflow\n");
+        return 0.0;
+    }
+}
+
+void add() {
+    if (stack.top > 0) {
+        double b = pop();
+        double a = pop();
+        push(a + b);
+    } else {
+        printf("Not enough operands\n");
+    }
+}
+
+void subtract() {
+    if (stack.top > 0) {
+        double b = pop();
+        double a = pop();
+        push(a - b);
+    } else {
+        printf("Not enough operands\n");
+    }
+}
+
+void multiply() {
+    if (stack.top > 0) {
+        double b = pop();
+        double a = pop();
+        push(a * b);
+    } else {
+        printf("Not enough operands\n");
+    }
+}
+
+void divide() {
+    if (stack.top > 0) {
+        double b = pop();
+        if (b != 0.0) {
+            double a = pop();
+            push(a / b);
+        } else {
+            printf("Division by zero\n");
+        }
+    } else {
+        printf("Not enough operands\n");
+    }
+}
+
+void dup() {
+    if (stack.top >= 0) {
+        double top = stack.data[stack.top];
+        push(top);
+    } else {
+        printf("Stack underflow\n");
+    }
+}
+
+void drop() {
+    if (stack.top >= 0) {
+        pop();
+    } else {
+        printf("Stack underflow\n");
+    }
+}
+
+void swap() {
+    if (stack.top > 0) {
+        double top = pop();
+        double second = pop();
+        push(top);
+        push(second);
+    } else {
+        printf("Stack underflow\n");
+    }
+}
+
+void over() {
+    if (stack.top > 0) {
+        double top = stack.data[stack.top];
+        double second = stack.data[stack.top - 1];
+        push(second);
+    } else {
+        printf("Stack underflow\n");
+    }
+}
+
+void showWords() {
+    printf("Supported commands: + - * / . words dup drop swap over\n");
+}
+
+void parseAndExecute(char* input) {
+    char* token = strtok(input, " \n\t");
+    while (token != NULL) {
+        if (isdigit(token[0]) || (token[0] == '-' && isdigit(token[1]))) {
+            push(atof(token));
+        } else {
+            if (strcmp(token, "+") == 0) add();
+            else if (strcmp(token, "-") == 0) subtract();
+            else if (strcmp(token, "*") == 0) multiply();
+            else if (strcmp(token, "/") == 0) divide();
+            else if (strcmp(token, ".") == 0) printf("%g\n", pop());
+            else if (strcmp(token, "words") == 0) showWords();
+            else if (strcmp(token, "dup") == 0) dup();
+            else if (strcmp(token, "drop") == 0) drop();
+            else if (strcmp(token, "swap") == 0) swap();
+            else if (strcmp(token, "over") == 0) over();
+            else printf("Unknown command: %s\n", token);
+        }
+        token = strtok(NULL, " \n\t");
+    }
+}
+
+int main() {
+    char input[MAX_INPUT];
+    printf("MINT Interpreter v2.0\n");
+
+    while (fgets(input, sizeof(input), stdin)) {
+        parseAndExecute(input);
+    }
+
+    return 0;
+}
